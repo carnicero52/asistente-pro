@@ -46,6 +46,8 @@ model Negocio {
   
   // Base de conocimientos para el bot
   faqContenido    String?  // Preguntas frecuentes en texto o JSON
+  conocimientoBase String? // Contenido extraído de PDFs y documentos
+  conocimientoArchivos String? // JSON con lista de archivos subidos {nombre, fecha, tamaño}
   
   // ===== NOTIFICACIONES =====
   

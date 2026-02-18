@@ -4,15 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   Send, 
   Bot, 
   User, 
   Loader2,
-  Store,
   MessageCircle,
-  ArrowLeft
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 
 interface Message {
@@ -30,6 +33,7 @@ interface Negocio {
   direccion?: string;
   telefono?: string;
   whatsapp?: string;
+  horarios?: string;
   modoBot: string;
 }
 
@@ -60,11 +64,15 @@ export default function ChatPage() {
       
       if (response.ok && data.negocio) {
         setNegocio(data.negocio);
-        // Mensaje de bienvenida
+        // Mensaje de bienvenida personalizado
+        const saludo = data.negocio.descripcion 
+          ? `¡Hola! 👋 Soy el asistente virtual de **${data.negocio.nombre}**.\n\n${data.negocio.descripcion}\n\n¿En qué puedo ayudarte hoy?`
+          : `¡Hola! 👋 Soy el asistente virtual de **${data.negocio.nombre}**. ¿En qué puedo ayudarte hoy?`;
+        
         setMessages([
           {
             role: 'assistant',
-            content: `¡Hola! Soy el asistente virtual de **${data.negocio.nombre}**. ¿En qué puedo ayudarte hoy?`,
+            content: saludo,
             timestamp: new Date()
           }
         ]);
@@ -176,22 +184,41 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header className="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
+      {/* Header con nombre del negocio */}
+      <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 shadow-lg sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg">
-              <Bot className="w-6 h-6 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/30">
+              <Bot className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="font-bold text-slate-800 text-lg">{negocio.nombre}</h1>
+              <h1 className="font-bold text-white text-xl">{negocio.nombre}</h1>
               {negocio.descripcion && (
-                <p className="text-sm text-slate-600">{negocio.descripcion}</p>
-              )}
-              {!negocio.descripcion && negocio.puestoBuscado && (
-                <p className="text-sm text-slate-600">{negocio.puestoBuscado}</p>
+                <p className="text-purple-100 text-sm mt-0.5 line-clamp-2">{negocio.descripcion}</p>
               )}
             </div>
+          </div>
+          
+          {/* Info adicional del negocio */}
+          <div className="flex flex-wrap gap-3 mt-3">
+            {negocio.direccion && (
+              <div className="flex items-center gap-1.5 text-purple-100 text-xs bg-white/10 px-2.5 py-1 rounded-full">
+                <MapPin className="w-3 h-3" />
+                <span>{negocio.direccion}</span>
+              </div>
+            )}
+            {negocio.horarios && (
+              <div className="flex items-center gap-1.5 text-purple-100 text-xs bg-white/10 px-2.5 py-1 rounded-full">
+                <Clock className="w-3 h-3" />
+                <span>{negocio.horarios}</span>
+              </div>
+            )}
+            {negocio.telefono && (
+              <div className="flex items-center gap-1.5 text-purple-100 text-xs bg-white/10 px-2.5 py-1 rounded-full">
+                <Phone className="w-3 h-3" />
+                <span>{negocio.telefono}</span>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -264,9 +291,12 @@ export default function ChatPage() {
               <Send className="w-4 h-4" />
             </Button>
           </form>
-          <p className="text-xs text-center text-slate-400 mt-2">
-            Asistente virtual powered by IA
-          </p>
+          <div className="flex items-center justify-center gap-1.5 mt-2">
+            <Sparkles className="w-3 h-3 text-purple-400" />
+            <p className="text-xs text-center text-slate-400">
+              Asistente virtual powered by IA
+            </p>
+          </div>
         </div>
       </footer>
     </div>

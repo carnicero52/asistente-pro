@@ -58,6 +58,17 @@ export async function GET() {
       { name: 'whatsapp', sql: 'ALTER TABLE Negocio ADD COLUMN whatsapp TEXT' },
       { name: 'facebook', sql: 'ALTER TABLE Negocio ADD COLUMN facebook TEXT' },
       { name: 'instagram', sql: 'ALTER TABLE Negocio ADD COLUMN instagram TEXT' },
+      
+      // Configuración IA
+      { name: 'modoBot', sql: 'ALTER TABLE Negocio ADD COLUMN modoBot TEXT DEFAULT "hibrido"' },
+      { name: 'iaProvider', sql: 'ALTER TABLE Negocio ADD COLUMN iaProvider TEXT DEFAULT "z-ai"' },
+      { name: 'iaApiKey', sql: 'ALTER TABLE Negocio ADD COLUMN iaApiKey TEXT' },
+      { name: 'iaModelo', sql: 'ALTER TABLE Negocio ADD COLUMN iaModelo TEXT' },
+      { name: 'iaTemperature', sql: 'ALTER TABLE Negocio ADD COLUMN iaTemperature REAL DEFAULT 0.7' },
+      
+      // Base de conocimiento
+      { name: 'conocimientoBase', sql: 'ALTER TABLE Negocio ADD COLUMN conocimientoBase TEXT' },
+      { name: 'conocimientoArchivos', sql: 'ALTER TABLE Negocio ADD COLUMN conocimientoArchivos TEXT' },
     ];
 
     let added = 0;

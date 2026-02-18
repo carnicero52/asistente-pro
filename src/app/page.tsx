@@ -100,20 +100,30 @@ export default function HomePage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-slate-800">ContrataFácil</span>
-            </div>
+            <Link href="/admin" className="flex items-center gap-3">
+              <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <Briefcase className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-xl font-bold text-slate-800">ContrataFácil</span>
+              </div>
+            </Link>
           </div>
-          <Link href="/admin">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Store className="w-4 h-4" />
-              <span className="hidden sm:inline">Mi Panel</span>
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/admin">
+              <Button variant="outline" size="sm" className="gap-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50">
+                <Store className="w-4 h-4" />
+                <span className="hidden sm:inline">Iniciar Sesión</span>
+              </Button>
+            </Link>
+            <Link href="#registro">
+              <Button size="sm" className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Registrar</span>
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

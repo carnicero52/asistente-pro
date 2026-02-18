@@ -10,7 +10,9 @@ export async function GET(
     const db = getDb();
 
     const result = await db.execute({
-      sql: `SELECT id, nombre, slug, telefono, direccion, descripcion, puestoBuscado, requisitos, buscandoPersonal 
+      sql: `SELECT id, nombre, slug, telefono, direccion, descripcion, puestoBuscado, 
+            requisitos, buscandoPersonal, whatsapp, horarios, modoBot, 
+            saludoBot, mensajeDespedida
             FROM Negocio WHERE slug = ?`,
       args: [slug]
     });
@@ -22,8 +24,20 @@ export async function GET(
     const negocio = result.rows[0];
     return NextResponse.json({ 
       negocio: {
-        ...negocio,
-        buscandoPersonal: negocio.buscandoPersonal === 1
+        id: negocio.id,
+        nombre: negocio.nombre,
+        slug: negocio.slug,
+        telefono: negocio.telefono,
+        direccion: negocio.direccion,
+        descripcion: negocio.descripcion,
+        puestoBuscado: negocio.puestoBuscado,
+        requisitos: negocio.requisitos,
+        buscandoPersonal: negocio.buscandoPersonal === 1,
+        whatsapp: negocio.whatsapp,
+        horarios: negocio.horarios,
+        modoBot: negocio.modoBot || 'hibrido',
+        saludoBot: negocio.saludoBot,
+        mensajeDespedida: negocio.mensajeDespedida
       }
     });
   } catch (error) {

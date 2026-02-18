@@ -43,7 +43,12 @@ import {
   Cpu,
   Bot,
   Sparkles,
-  Slider
+  Slider,
+  BookOpen,
+  Upload,
+  File,
+  X,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -510,6 +515,10 @@ export default function AdminPage() {
             <TabsTrigger value="ia" className="gap-2">
               <Bot className="w-4 h-4" />
               IA y Modos
+            </TabsTrigger>
+            <TabsTrigger value="conocimiento" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Conocimiento
             </TabsTrigger>
             <TabsTrigger value="configuracion" className="gap-2">
               <Settings className="w-4 h-4" />
@@ -1291,6 +1300,11 @@ export default function AdminPage() {
             </div>
           </TabsContent>
 
+          {/* Conocimiento Tab */}
+          <TabsContent value="conocimiento">
+            <KnowledgeTab negocioId={negocio.id} />
+          </TabsContent>
+
           {/* Configuración Tab */}
           <TabsContent value="configuracion">
             <div className="max-w-2xl space-y-6">
@@ -1361,6 +1375,278 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+// Componente para gestionar la base de conocimiento
+function KnowledgeTab({ negocioId }: { negocioId: string }) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [conocimiento, setConocimiento] = useState('');
+  const [archivos, setArchivos] = useState<Array<{nombre: string; fecha: string; caracteres: number}>>([]);
+  const [textoManual, setTextoManual] = useState('');
+
+  useEffect(() => {
+    loadConocimiento();
+  }, []);
+
+  const loadConocimiento = async () => {
+    try {
+      const response = await fetch('/api/admin/conocimiento');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setConocimiento(data.conocimiento || '');
+        setArchivos(data.archivos || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar conocimiento:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({ title: 'Error', description: 'Solo se permiten archivos PDF', variant: 'destructive' });
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/admin/conocimiento', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({ title: '¡PDF procesado!', description: data.message });
+        loadConocimiento();
+      } else {
+        toast({ title: 'Error', description: data.error || 'Error al procesar PDF', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Error al subir el archivo', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAddText = async () => {
+    if (!textoManual.trim()) return;
+
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('texto', textoManual);
+
+      const response = await fetch('/api/admin/conocimiento', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({ title: 'Texto agregado', description: data.message });
+        setTextoManual('');
+        loadConocimiento();
+      } else {
+        toast({ title: 'Error', description: data.error || 'Error al agregar texto', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Error al agregar texto', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleClear = async () => {
+    if (!confirm('¿Estás seguro de eliminar toda la base de conocimiento? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const response = await fetch('/api/admin/conocimiento', {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        toast({ title: 'Base de conocimiento limpiada' });
+        setConocimiento('');
+        setArchivos([]);
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Error al limpiar', variant: 'destructive' });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl space-y-6">
+      {/* Instrucciones */}
+      <Card className="border-none shadow-sm bg-amber-50 border border-amber-200">
+        <CardContent className="py-4">
+          <p className="text-sm text-amber-800">
+            <strong>📚 Base de Conocimiento:</strong> Sube documentos PDF (leyes, reglamentos, manuales, procedimientos) 
+            para que el chatbot pueda responder preguntas basándose en esa información. El contenido de los PDFs 
+            se extraerá automáticamente y se usará como contexto para las respuestas.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Subir PDF */}
+      <Card className="border-none shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5 text-purple-600" />
+            Subir Documento PDF
+          </CardTitle>
+          <CardDescription>El texto del PDF se extraerá automáticamente y se agregará a la base de conocimiento</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <label className="flex-1">
+              <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors">
+                <div className="text-center">
+                  <File className="w-10 h-10 mx-auto text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-600">
+                    {uploading ? 'Procesando...' : 'Haz clic para subir un PDF'}
+                  </p>
+                  <p className="text-xs text-slate-400">Máximo 10MB</p>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Agregar texto manual */}
+      <Card className="border-none shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            Agregar Texto Manualmente
+          </CardTitle>
+          <CardDescription>Pega información directamente si no tienes un PDF</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            value={textoManual}
+            onChange={(e) => setTextoManual(e.target.value)}
+            placeholder="Pega aquí el contenido que deseas agregar a la base de conocimiento..."
+            className="min-h-[150px]"
+          />
+          <Button 
+            onClick={handleAddText}
+            disabled={uploading || !textoManual.trim()}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {uploading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Agregando...</>
+            ) : (
+              <><FileText className="w-4 h-4 mr-2" /> Agregar texto</>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Archivos subidos */}
+      {archivos.length > 0 && (
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-emerald-600" />
+              Documentos Cargados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {archivos.map((archivo, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <File className="w-5 h-5 text-red-500" />
+                  <div>
+                    <p className="font-medium text-sm">{archivo.nombre}</p>
+                    <p className="text-xs text-slate-500">
+                      {archivo.caracteres.toLocaleString()} caracteres • {new Date(archivo.fecha).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vista previa del conocimiento */}
+      {conocimiento && (
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-purple-600" />
+                Contenido de la Base de Conocimiento
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClear}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Limpiar todo
+              </Button>
+            </div>
+            <CardDescription>
+              {conocimiento.length.toLocaleString()} caracteres totales
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+              <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono">
+                {conocimiento.substring(0, 5000)}
+                {conocimiento.length > 5000 && '\n\n... (contenido truncado para vista previa)'}
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Estado vacío */}
+      {!conocimiento && (
+        <Card className="border-none shadow-sm">
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-30" />
+            <p>No hay documentos en la base de conocimiento</p>
+            <p className="text-sm">Sube un PDF o agrega texto para que el chatbot pueda usarlo</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
