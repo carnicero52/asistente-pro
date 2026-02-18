@@ -22,7 +22,7 @@ function getClient() {
   return client
 }
 
-// Helper para ejecutar queries - ContrataFácil
+// Helper para ejecutar queries - Asistente Pro
 export const db = {
   // Negocio operations
   negocio: {

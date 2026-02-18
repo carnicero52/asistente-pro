@@ -14,16 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ContrataFácil - Sistema de Recepción de CVs",
-  description: "Sistema de recepción de currículums para pequeñas organizaciones. Recibe candidatos de forma fácil y organizada.",
-  keywords: ["empleo", "trabajo", "currículum", "CV", "candidatos", "reclutamiento", "contratación"],
-  authors: [{ name: "ContrataFácil" }],
+  title: "Asistente Pro - Tu asistente virtual con IA",
+  description: "Un asistente virtual que nunca descansa. Responde automáticamente a tus clientes, agenda citas y toma pedidos las 24 horas.",
+  keywords: ["asistente virtual", "chatbot", "IA", "atención al cliente", "automatización", "agenda citas"],
+  authors: [{ name: "Asistente Pro" }],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "ContrataFácil - Sistema de Recepción de CVs",
-    description: "Recibe currículums de forma fácil y organizada",
+    title: "Asistente Pro - Tu asistente virtual con IA",
+    description: "Un asistente virtual que nunca descansa",
     type: "website",
   },
 };
