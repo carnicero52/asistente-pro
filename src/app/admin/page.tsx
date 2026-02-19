@@ -29,7 +29,9 @@ import {
   Trash2,
   QrCode,
   Share2,
-  CheckCircle
+  CheckCircle,
+  Download,
+  Link2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -530,9 +532,25 @@ export default function AdminPage() {
                     <Button 
                       variant="outline" 
                       className="flex-1 gap-2"
-                      onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(chatUrl)}`, '_blank')}
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(chatUrl)}`);
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `qr-${negocio.slug}.png`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                          toast({ title: 'QR descargado' });
+                        } catch {
+                          toast({ title: 'Error', description: 'No se pudo descargar el QR', variant: 'destructive' });
+                        }
+                      }}
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <Download className="w-4 h-4" />
                       Descargar QR
                     </Button>
                     <Button 
@@ -881,8 +899,9 @@ function KnowledgeTab({ negocioId }: { negocioId: string }) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [conocimiento, setConocimiento] = useState('');
-  const [archivos, setArchivos] = useState<Array<{nombre: string; fecha: string; caracteres: number}>>([]);
+  const [archivos, setArchivos] = useState<Array<{nombre: string; fecha: string; caracteres: number, tipo?: string}>>([]);
   const [textoManual, setTextoManual] = useState('');
+  const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -949,7 +968,7 @@ function KnowledgeTab({ negocioId }: { negocioId: string }) {
       const data = await response.json();
       
       if (response.ok) {
-        toast({ title: 'Texto agregado' });
+        toast({ title: 'Texto agregado', description: data.message });
         setTextoManual('');
         loadConocimiento();
       } else {
@@ -957,6 +976,41 @@ function KnowledgeTab({ negocioId }: { negocioId: string }) {
       }
     } catch {
       toast({ title: 'Error', description: 'Error al agregar texto', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddUrl = async () => {
+    if (!urlInput.trim()) return;
+    
+    // Validar URL
+    try {
+      new URL(urlInput);
+    } catch {
+      toast({ title: 'Error', description: 'URL inválida', variant: 'destructive' });
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const response = await fetch('/api/admin/conocimiento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({ title: 'URL procesada', description: data.message });
+        setUrlInput('');
+        loadConocimiento();
+      } else {
+        toast({ title: 'Error', description: data.error, variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Error al procesar la URL', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -1044,6 +1098,35 @@ function KnowledgeTab({ negocioId }: { negocioId: string }) {
             className="bg-blue-600 hover:bg-blue-700"
           >
             Agregar Texto
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Add from URL */}
+      <Card className="border-slate-200 bg-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="w-5 h-5 text-green-600" />
+            Agregar desde URL
+          </CardTitle>
+          <CardDescription>
+            Extrae contenido de una página web o documento online
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Input
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="https://ejemplo.com/pagina o https://ejemplo.com/documento.pdf"
+            type="url"
+          />
+          <Button 
+            onClick={handleAddUrl} 
+            disabled={uploading || !urlInput.trim()}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Link2 className="w-4 h-4 mr-2" />
+            Extraer Contenido
           </Button>
         </CardContent>
       </Card>
